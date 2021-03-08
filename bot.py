@@ -1,4 +1,5 @@
 import os
+import random
 from graia.broadcast import Broadcast
 from graia.application import GraiaMiraiApplication,Session
 from graia.application.message.chain import  MessageChain
@@ -24,10 +25,12 @@ s=Session(
 )
 if os.path.exists('./Local'):
     #本地
-    host = 'http://47.93.148.239:8080',
+    s.host = 'http://47.93.148.239:8080'
+    print(s.host)
     pass
 else:
-    host = 'http://127.0.0.1:8080',
+    s.host = 'http://127.0.0.1:8080'
+    print(s.host)
     pass
 app=GraiaMiraiApplication(
     broadcast=bcc,
@@ -127,8 +130,11 @@ async def group_message_handler(
     print("普通handle " + strMessage)
 
     if strMessage.startswith('/测试'):
-        await app.sendGroupMessage(group,MessageChain.create([
-            At(member.id),Plain("你测个锤子!!!\n给你一个张图片吧！"),Image.fromLocalFile('C:\\Users\\MACHENIKE\\Pictures\\01.jpg')
+        ch=random.randint(0,1000)
+        await app.sendGroupMessage(group, MessageChain.create([
+            At(member.id),
+            Plain("你测个锤子!!!\n给你一个随机表情吧！ch:"+str(ch)),
+            Face(faceId=ch)
         ]))
         pass
     elif strMessage.startswith('好家伙'):
