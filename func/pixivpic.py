@@ -1,21 +1,21 @@
 import requests
 import random
-_HEADERS = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4314.150 Safari/537.36'
-}
-_URL_VIS = 'https://pixivel.moe/'
-_DATA = {
-    'type': 'search',
-    'word': '明日方舟',
-    'page': 0,
-    'mode': 'partial_match_for_tags'
-}
 
 
 class Pixivpic:
+    _HEADERS = {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4314.150 Safari/537.36'
+    }
+    _URL_VIS = 'https://pixivel.moe/'
+    _DATA = {
+        'type': 'search',
+        'word': '明日方舟',
+        'page': 0,
+        'mode': 'partial_match_for_tags'
+    }
     def __init__(self):
         self.session = requests.session()
-        ret = self.session.get(_URL_VIS, headers=_HEADERS)
+        ret = self.session.get(self._URL_VIS, headers=self._HEADERS)
         print('Pixivpic 初始化结果:%d' % ret.status_code)
         pass
 
@@ -25,11 +25,11 @@ class Pixivpic:
         pass
 
     def query(self, kw):
-        _DATA['word'] = kw
+        self._DATA['word'] = kw
         ret = self.session.get(
             'https://api.pixivel.moe/pixiv',
-            headers=_HEADERS,
-            params=_DATA)
+            headers=self._HEADERS,
+            params=self._DATA)
         data = ret.json()
         if 'illusts' not in data:
             return ''

@@ -186,18 +186,64 @@ class Translate:
             log = '翻译失败！SC：%d RAISE:%s' % (
                 ret.status_code, ret.raise_for_status())
             return log
-        result = ret.json()
-        return result[0][0][0]
+        data = ret.json()
+        # 以 “你好” 为例
+        # 0 列表 翻译结果
+        #  00 列表 第一行翻译结果列表
+        #   000 str 第一行翻译文本
+        #   001 str 第一行原始文本
+        #   002 None 未知
+        #   003 None 未知
+        #   004 int 未知
+        #  ...
+        #  0n 列表 发音标识列表
+        #   0n0 None 未知
+        #   0n1 None 未知
+        #   0n2 None 未知
+        #   0n3 发音标识文本
+        # 1 列表 推荐翻译列表
+        #  10 列表
+        #   100 str 词性
+        #   101 列表 该词性可翻译的列表 长度为n
+        #   102 列表 所有上述列表中每一项的翻译 长度为n
+        #    1020 列表 第0项翻译
+        #     10200 str 第0项翻译内容
+        #     10201 列表 第0项原始文本同义项
+        #     10202 None 未知
+        #     10203 float 使用频率
+        #    ...
+        #    102n 列表 第n项翻译
+        #   103 str 原始文本
+        #   104 int 未知
+        #  ..
+        # 2 str 原始语言
+        # 3 None 未知
+        # 4 None 未知
+        # 5 列表 改进方案
+        # 7 float 未知
+        # 8 列表 未知
+        # 9 列表 未知
+        for item in data:
+            print(item)
+            pass
+        #拼合翻译结果
+        length=len(data[0])-1
+        result=''
+        for i in range(length):
+            result=result+data[0][i][0]
+            pass
+        return result
         pass  # 方法结束
     pass
 
 
 if __name__ == '__main__':
     tran = Translate()
-    print(tran.tran('你好！'))
-    print(tran.tran('こんにちは！'))
-    print(tran.tran('Hello！'))
-    print(tran.tran('你好！','日语'))
-    print(tran.tran('こんにちは！','英语'))
-    print(tran.tran('Hello！','中文繁体'))
+    print(tran.tran('want\ngood'))
+    #print(tran.tran('第一行\n第二行\n'))
+    #print(tran.tran('こんにちは！'))
+    #print(tran.tran('Hello！'))
+    #print(tran.tran('你好！','日语'))
+    #print(tran.tran('こんにちは！','英语'))
+    #print(tran.tran('Hello！','中文繁体'))
     pass
