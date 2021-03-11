@@ -1,30 +1,31 @@
 import os
 import random
 from graia.broadcast import Broadcast
-from graia.application import GraiaMiraiApplication,Session
-from graia.application.message.chain import  MessageChain
+from graia.application import GraiaMiraiApplication, Session
+from graia.application.message.chain import MessageChain
 from graia.application.message.parser.kanata import Kanata
-from graia.application.message.parser.signature import FullMatch,OptionalParam,RequireParam
+from graia.application.message.parser.signature import FullMatch, OptionalParam, RequireParam
 import asyncio
 
-from graia.application.message.elements.internal import At,Plain,Quote,Image,Face,Source
+from graia.application.message.elements.internal import At, Plain, Quote, Image, Face, Source
 from graia.application.friend import Friend
-from graia.application.group import Group,Member
+from graia.application.group import Group, Member
 
 from func.translate import Translate
 import func.arknights.arknights as arknights
 from func.pixivpic import Pixivpic
 
-loop=asyncio.get_event_loop()
-bcc=Broadcast(loop=loop)
-s=Session(
+loop = asyncio.get_event_loop()
+bcc = Broadcast(loop=loop)
+RobotNumber = 2167480761
+s = Session(
     host='http://47.93.148.239:8080',
     authKey='INITKEYzch6rcNE',
-    account=2167480761,
+    account=RobotNumber,
     websocket=True
 )
 if os.path.exists('./Local'):
-    #本地
+    # 本地
     s.host = 'http://47.93.148.239:8080'
     print(s.host)
     pass
@@ -32,91 +33,98 @@ else:
     s.host = 'http://127.0.0.1:8080'
     print(s.host)
     pass
-app=GraiaMiraiApplication(
+app = GraiaMiraiApplication(
     broadcast=bcc,
     connect_info=s
 )
 
+
 @bcc.receiver('FriendMessage')
-async def friend_message_listener(app: GraiaMiraiApplication,friend: Friend):
-    print(friend.id,friend.nickname)
+async def friend_message_listener(app: GraiaMiraiApplication, friend: Friend):
+    print(friend.id, friend.nickname)
     pass
 
-@bcc.receiver('GroupMessage',dispatchers=[
-    Kanata([FullMatch('翻译'),RequireParam(name='strPara')])
+
+@bcc.receiver('GroupMessage', dispatchers=[
+    Kanata([FullMatch('翻译'), RequireParam(name='mcPara')])
 ])
 async def group_message_handler(
-        message:MessageChain,
-        app:GraiaMiraiApplication,
-        group:Group,
-        member:Member,
-        strPara:MessageChain
+        message: MessageChain,
+        app: GraiaMiraiApplication,
+        group: Group,
+        member: Member,
+        mcPara: MessageChain
 ):
-    print("翻译handle "+strPara.asDisplay())
-    tran=Translate()
-    strCmd=strPara.asDisplay()
-    #print(strCmd)
-    if strCmd[0]==' ':
-        #翻译 你好！
-        ret = tran.tran(strCmd[1:])
+    strPara = mcPara.asDisplay()
+    print("翻译handle " + strPara)
+
+    tran = Translate()
+    # print(strCmd)
+    if strPara[0] == ' ' or strPara[0] == '\n':
+        # 翻译 你好！
+        ret = tran.tran(strPara[1:])
         pass
     else:
-        #翻译到日语 你好！
-        nPos=strCmd.find(' ')
-        ret=tran.tran(strCmd[nPos:],strCmd[1:nPos])
+        # 翻译到日语 你好！
+        nPos = strPara.find(' ')
+        ret = tran.tran(strPara[nPos:], strPara[1:nPos])
         pass
 
     await app.sendGroupMessage(group, MessageChain.create([
-        At(member.id), Plain(ret)
+        At(member.id), Plain('\n' + ret)
     ]))
     pass
 
-@bcc.receiver('GroupMessage',dispatchers=[
-    Kanata([FullMatch('方舟 '),RequireParam(name='strPara')])
+
+@bcc.receiver('GroupMessage', dispatchers=[
+    Kanata([FullMatch('方舟 '), RequireParam(name='mcPara')])
 ])
 async def group_message_handler(
-        message:MessageChain,
-        app:GraiaMiraiApplication,
-        group:Group,
-        member:Member,
-        strPara:MessageChain
+        message: MessageChain,
+        app: GraiaMiraiApplication,
+        group: Group,
+        member: Member,
+        mcPara: MessageChain
 ):
-    print("方舟handle " + strPara.asDisplay())
-    ret=arknights.queryDrap(strPara.asDisplay())
-    if type(ret)!=str:
+    strPara = mcPara.asDisplay()
+    print("方舟handle " + strPara)
+    ret = arknights.queryDrap(strPara)
+    if not isinstance(ret, str):
         return
-    ret='%s\n%s'%(strPara.asDisplay(),ret)
+    ret = '%s\n%s' % (strPara, ret)
 
     await app.sendGroupMessage(group, MessageChain.create([
-        At(member.id), Plain(ret)
+        At(member.id), Plain('\n' + ret)
     ]))
     pass
 
 
-@bcc.receiver('GroupMessage',dispatchers=[
-    Kanata([FullMatch('P图 '),RequireParam(name='mcPara')])
+@bcc.receiver('GroupMessage', dispatchers=[
+    Kanata([FullMatch('P图 '), RequireParam(name='mcPara')])
 ])
 async def group_message_handler(
-        message:MessageChain,
-        app:GraiaMiraiApplication,
-        group:Group,
-        member:Member,
-        mcPara:MessageChain
+        message: MessageChain,
+        app: GraiaMiraiApplication,
+        group: Group,
+        member: Member,
+        mcPara: MessageChain
 ):
     strPara = mcPara.asDisplay()
     print("P图handle " + strPara)
 
-    pix=Pixivpic()
-    ret=pix.query(strPara)
-    if ret=='':
+    pix = Pixivpic()
+    ret = pix.query(strPara)
+    print(ret)
+    if ret == '':
         await app.sendGroupMessage(group, MessageChain.create([
             At(member.id), Plain('没有'), Face(faceId=98)
         ]))
         return
         pass
     await app.sendGroupMessage(group, MessageChain.create([
-        At(member.id), Plain('\n'),Image.fromNetworkAddress(ret)
+        At(member.id), Image.fromNetworkAddress(ret)
     ]))
+
     pass
 
 
@@ -126,14 +134,14 @@ async def group_message_handler(
     app: GraiaMiraiApplication,
     group: Group, member: Member,
 ):
-    strMessage=message.asDisplay()
+    strMessage = message.asDisplay()
     print("普通handle " + strMessage)
 
     if strMessage.startswith('/测试'):
-        ch=random.randint(0,1000)
+        ch = random.randint(0, 256)
         await app.sendGroupMessage(group, MessageChain.create([
             At(member.id),
-            Plain("你测个锤子!!!\n给你一个随机表情吧！ch:"+str(ch)),
+            Plain("你测个锤子!!!\n给你一个随机表情吧！ch:" + str(ch)),
             Face(faceId=ch)
         ]))
         pass
@@ -145,7 +153,6 @@ async def group_message_handler(
         await app.sendGroupMessage(group, MessageChain.create([
             Plain(' '),
             At(member.id),
-
             Plain('这是回复内容')
         ]))
         pass
@@ -153,12 +160,12 @@ async def group_message_handler(
         print(message.asSerializationString())
         print("message:")
         for item in message:
-            print(item.__class__,item)
+            print(item.__class__, item)
             pass
         print(message.__root__)
         print("message__root__:")
         for item in message.__root__:
-            print(item.__class__,item)
+            print(item.__class__, item)
             pass
         pass
     pass
