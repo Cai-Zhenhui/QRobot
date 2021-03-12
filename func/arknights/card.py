@@ -19,7 +19,7 @@ class Card:
     }
     def __init__(self):
         #加载干员列表
-        with open(os.path.dirname(__file__)+'./role.txt','r',encoding='utf-8') as f:
+        with open(os.path.dirname(__file__)+'/role.txt','r',encoding='utf-8') as f:
             rows=f.read().splitlines()
             for row in rows:
                 _result=row.split(' ')
