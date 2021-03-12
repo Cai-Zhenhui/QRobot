@@ -4,7 +4,7 @@ from graia.broadcast import Broadcast
 from graia.application import GraiaMiraiApplication, Session
 from graia.application.message.chain import MessageChain
 from graia.application.message.parser.kanata import Kanata
-from graia.application.message.parser.signature import FullMatch, OptionalParam, RequireParam
+from graia.application.message.parser.signature import FullMatch, OptionalParam, RequireParam,OptionalParam
 import asyncio
 
 from graia.application.message.elements.internal import At, Plain, Quote, Image, Face, Source
@@ -13,6 +13,7 @@ from graia.application.group import Group, Member
 
 from func.translate import Translate
 import func.arknights.arknights as arknights
+from func.arknights.card import Card
 from func.pixivpic import Pixivpic
 
 loop = asyncio.get_event_loop()
@@ -55,6 +56,8 @@ async def group_message_handler(
         member: Member,
         mcPara: MessageChain
 ):
+    if group.id != 817108947 and group.id != 434598019:
+        return
     strPara = mcPara.asDisplay()
     print("翻译handle " + strPara)
 
@@ -75,7 +78,7 @@ async def group_message_handler(
     ]))
     pass
 
-
+'''
 @bcc.receiver('GroupMessage', dispatchers=[
     Kanata([FullMatch('方舟 '), RequireParam(name='mcPara')])
 ])
@@ -97,6 +100,45 @@ async def group_message_handler(
         At(member.id), Plain('\n' + ret)
     ]))
     pass
+'''
+arknightsCard=Card()
+@bcc.receiver('GroupMessage', dispatchers=[
+    Kanata([FullMatch('方舟 '), RequireParam(name='mcPara')])
+])
+async def group_message_handler(
+        message: MessageChain,
+        app: GraiaMiraiApplication,
+        group: Group,
+        member: Member,
+        mcPara: MessageChain
+):
+    if group.id != 817108947 and group.id != 434598019:
+        return
+    strPara = mcPara.asDisplay()
+    print("方舟handle " + strPara)
+    #材料 研磨石
+    if strPara=='1':
+        ret=arknightsCard.getCard(member.id)
+        pass
+    elif strPara=='10':
+        ret = arknightsCard.getCard10(member.id)
+        pass
+    elif strPara=='reset':
+        ret = arknightsCard.resetRecord(member.id)
+        pass
+    else:
+        ret = arknights.queryDrap(strPara)
+        if not isinstance(ret, str):
+            return
+        ret = '%s\n%s' % (strPara, ret)
+        pass
+
+
+
+    await app.sendGroupMessage(group, MessageChain.create([
+        At(member.id), Plain('\n' + ret)
+    ]))
+    pass
 
 
 @bcc.receiver('GroupMessage', dispatchers=[
@@ -109,8 +151,16 @@ async def group_message_handler(
         member: Member,
         mcPara: MessageChain
 ):
+    if group.id!=817108947 and group.id!=434598019:
+        return
     strPara = mcPara.asDisplay()
     print("P图handle " + strPara)
+
+    '''
+    await app.sendGroupMessage(group, MessageChain.create([
+        At(member.id), Plain('修复ing')
+    ]))
+    return'''
 
     pix = Pixivpic()
     ret = pix.query(strPara)
@@ -134,6 +184,8 @@ async def group_message_handler(
     app: GraiaMiraiApplication,
     group: Group, member: Member,
 ):
+    if group.id != 817108947 and group.id != 434598019:
+        return
     strMessage = message.asDisplay()
     print("普通handle " + strMessage)
 
