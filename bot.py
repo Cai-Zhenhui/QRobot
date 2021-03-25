@@ -184,7 +184,9 @@ async def group_message_handler(
     app: GraiaMiraiApplication,
     group: Group, member: Member,
 ):
-    if group.id != 817108947 and group.id != 434598019 and member.id!=274252932:
+    if group.id != 817108947 and group.id != 434598019:
+        return
+    if member.id!=274252932:
         return
     strMessage = message.asDisplay()
     print("普通handle " + strMessage)
